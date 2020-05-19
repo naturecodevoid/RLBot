@@ -178,9 +178,6 @@ class PythonHivemind(BotHelperProcess):
             )
         if quick_chat == QuickChats.CHAT_NONE or quick_chat is None:
             return
-        self.__quick_chat_func(index, team_only, quick_chat)
-
-    def __quick_chat_func(self, index, team_only, quick_chat):
         # Send the quick chat to the game
         rlbot_status = send_quick_chat_flat(self.game_interface, index, self.team, team_only, quick_chat)
 
