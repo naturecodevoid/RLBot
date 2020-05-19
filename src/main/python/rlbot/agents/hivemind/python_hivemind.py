@@ -14,6 +14,8 @@ from rlbot.utils.structures.ball_prediction_struct import BallPrediction
 from rlbot.utils.structures.bot_input_struct import PlayerInput
 from rlbot.utils.structures.game_data_struct import GameTickPacket, FieldInfoPacket
 from rlbot.utils.structures.game_interface import GameInterface
+from rlbot.utils.structures.game_status import RLBotCoreStatus
+from rlbot.utils.structures.quick_chats import QuickChats, send_quick_chat_flat
 
 
 class PythonHivemind(BotHelperProcess):
@@ -162,4 +164,27 @@ class PythonHivemind(BotHelperProcess):
     def set_game_state(self, game_state: GameState) -> None:
         self.game_interface.set_game_state(game_state)
 
-    # Not everything is supported yet, e.g. quick chats and match comms.
+    def send_quick_chat(self, index, team_only, quick_chat):
+        """
+        Sends a quick chat to the other bots.
+        If it is QuickChats.CHAT_NONE or None it does not send a quick chat to other bots.
+        :param index: The agent index (needs to be controlled by the hivemind!)
+        :param team_only: either True or False, this says if the quick chat should only go to team members.
+        :param quick_chat: The quick chat selection, available chats are defined in quick_chats.py
+        """
+        if index not in self.drone_indices:
+            return self.logger.error(
+                'Sending a quick chat from an agent not controlled by this hivemind is not supported!'
+            )
+        if quick_chat == QuickChats.CHAT_NONE or quick_chat is None:
+            return
+        self.__quick_chat_func(index, team_only, quick_chat)
+
+    def __quick_chat_func(self, index, team_only, quick_chat):
+        # Send the quick chat to the game
+        rlbot_status = send_quick_chat_flat(self.game_interface, index, self.team, team_only, quick_chat)
+
+        if rlbot_status == RLBotCoreStatus.QuickChatRateExceeded:
+            self.logger.debug('quick chat disabled')
+
+    # Not everything is supported yet, e.g. match comms.
