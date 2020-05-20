@@ -174,12 +174,16 @@ class PythonHivemind(BotHelperProcess):
         """
         if index not in self.drone_indices:
             return self.logger.error(
-                'Sending a quick chat from an agent not controlled by this hivemind is not supported!'
+                'Sending a quick chat from an agent not controlled by this hivemind is not allowed!'
             )
         if quick_chat == QuickChats.CHAT_NONE or quick_chat is None:
             return
+
+        packet = GameTickPacket()
+        self.game_interface.update_live_data_packet(packet)
+        team = packet.game_cars[index].team
         # Send the quick chat to the game
-        rlbot_status = send_quick_chat_flat(self.game_interface, index, self.team, team_only, quick_chat)
+        rlbot_status = send_quick_chat_flat(self.game_interface, index, team, team_only, quick_chat)
 
         if rlbot_status == RLBotCoreStatus.QuickChatRateExceeded:
             self.logger.debug('quick chat disabled')
